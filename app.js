@@ -39,9 +39,11 @@ conectarAMongoDB();
 
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const mensajesRoutes = require('./routes/chatRoutes');
+const puntajeRouter = require('./routes/puntajeRouter');
 
 app.use('/usuarios', usuariosRoutes);
 app.use('/mensajes', mensajesRoutes);
+app.use('/puntaje', puntajeRouter);
 
 const PORT = process.env.PORT || 3300;
 
