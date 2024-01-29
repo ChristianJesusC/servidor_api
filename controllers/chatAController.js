@@ -1,10 +1,10 @@
-const ChatGlobal = require("../models/chatGlobalModel")
+const ChatA = require("../models/chatAModel")
 const express = require("express")
 
 const chatController={
     guardarMensaje: async (req, res) => {
         try {
-          const chat = new ChatGlobal({
+          const chat = new ChatA({
             usuario: req.body.usuario,
             mensaje: req.body.mensaje,
             fecha: req.body.fecha
@@ -18,7 +18,7 @@ const chatController={
       },
       visualizarChat: async (req, res) => {
         try {
-          const chat = await ChatGlobal.find();
+          const chat = await ChatA.find();
           res.json(chat);
         } catch (error) {
           res.status(500).json({ error: error.message });
