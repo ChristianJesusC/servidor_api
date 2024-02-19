@@ -9,7 +9,6 @@ const publicacionController = {
         contenido: req.body.contenido,
         fecha: req.body.fecha,
       });
-
       await publicacion.save();
       res.status(201).json(publicacion);
     } catch (error) {

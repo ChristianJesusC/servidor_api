@@ -8,13 +8,14 @@ const morgan = require("morgan");
 const app = express();
 app.use(express.json());
 
+const Agenda = require("./models/agendaModel");
+
 const server = http.createServer(app);
 
 const io = socketio(server, {
   cors: { origin: '*' }
 });
 
-// ChatA - Namespace '/chatA'
 const chatANamespace = io.of('/chatA');
 chatANamespace.on('connection', (socket) => {
   console.log('Se ha conectado un usuario a chatA');
@@ -24,7 +25,6 @@ chatANamespace.on('connection', (socket) => {
   });
 });
 
-// ChatB - Namespace '/chatB'
 const chatBNamespace = io.of('/chatB');
 chatBNamespace.on('connection', (socket) => {
   console.log('Se ha conectado un usuario a chatB');
@@ -34,7 +34,6 @@ chatBNamespace.on('connection', (socket) => {
   });
 });
 
-// Chat Global
 const chatGlobalNamespace = io.of('/chatGlobal');
 chatGlobalNamespace.on('connection', (socket) => {
   console.log('Se ha conectado un usuario al chat global');
@@ -68,8 +67,76 @@ const chatA = require('./routes/chatARouter');
 app.use('/usuarios', usuariosRoutes);
 app.use('/mensajes', mensajesRoutes);
 app.use('/chatA', chatA);
-app.use('/puntaje', puntajeRouter);
 app.use('/publicacion', publicacionRouter);
+app.use('/puntaje', puntajeRouter);
+
+
+
+let responsesClientes = [];
+
+app.get("/agenda/ver", async (req, res) => {
+  try {
+    const notificaciones = await Agenda.find();
+    res.status(200).json({
+      notificaciones,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error al obtener las notificaciones",
+    });
+  }
+  console.log("Hola")
+});
+
+//ObtenerLong
+app.get("/agenda/nueva-agenda", (req, res) => {
+  responsesClientes.push(res);
+});
+
+function responderClientes(notificacion) {
+  for (res of responsesClientes) {
+    res.status(200).json({
+      success: true,
+      notificacion,
+    });
+  }
+
+  responsesClientes = [];
+}
+
+//Guardar
+app.post("/agenda/guardar", async (req, res) => {
+  try {
+    const notificacion = new Agenda({
+      fecha: req.body.fecha,
+      usuario: req.body.usuario,
+      mensaje: req.body.mensaje,
+    });
+    await notificacion.save();
+
+    responderClientes(notificacion);
+
+    return res.status(201).json({
+      success: true,
+      message: "evento guardada",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error al guardar el evento",
+    });
+  }
+  console.clear()
+});
+
+app.delete('/agenda', async (req, res) => {
+  try {
+    await Agenda.deleteMany();
+    res.status(200).json({ message: 'Todos los eventos han sido eliminadas' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar los eventos' });
+  }
+});
+
 
 const PORT = process.env.PORT || 3300;
 
